@@ -15,14 +15,11 @@
  */
 package io.scalatestfx.api
 
-import scala.language.implicitConversions
+import scala.jdk.CollectionConverters._
 
 object ImplicitConversions extends ImplicitConversions
 
-trait ImplicitConversions
-    extends JfxConversions
-    with GuavaConversions
-    with Java8Conversions
+trait ImplicitConversions extends JfxConversions
 
 object JfxConversions extends JfxConversions
 
@@ -35,53 +32,31 @@ trait JfxConversions {
   import scalafx.scene.input.KeyCode
   import scalafx.scene.input.MouseButton
   import scalafx.scene.input.InputIncludes._
+  import scalafx.stage.StageIncludes._
+  import scalafx.scene.SceneIncludes._
 
-  implicit def asSfxWindowSeq(windowList: java.util.List[jfxst.Window]): Seq[Window] =
-    windowList.map[Window, Seq[Window]] { window => window }
+  implicit def asSfxWindowList(windowList: java.util.List[jfxst.Window]): Seq[Window] =
+    windowList.asScala.map(jfxWindow2sfx).toList
 
   implicit def asSfxNodeSet(nodeSet: java.util.Set[jfxsc.Node]): Set[Node] =
-    nodeSet.map[Node, Set[Node]] { node => node }
+    nodeSet.asScala.map(jfxNode2sfx).toSet
 
   implicit def asSfxNodeList(nodeList: java.util.List[jfxsc.Node]): List[Node] =
-    nodeList.map[Node, List[Node]] { node => node }
+    nodeList.asScala.map(jfxNode2sfx).toList
 
   implicit def asSfxMouseButtonSeq(mouseButtons: Seq[jfxin.MouseButton]): Seq[MouseButton] =
-    mouseButtons.map[MouseButton, Seq[MouseButton]] { mouseButton => mouseButton }
+    mouseButtons.map { mouseButton => mouseButton }
 
   implicit def asJfxNodeSet(nodeSet: Set[Node]): Set[jfxsc.Node] =
-    nodeSet.map[jfxsc.Node, Set[jfxsc.Node]] { node => node }
+    nodeSet.map { node => node }
 
   implicit def asJfxNodeSet(nodeList: List[Node]): List[jfxsc.Node] =
-    nodeList.map[jfxsc.Node, List[jfxsc.Node]] { node => node }
+    nodeList.map { node => node }
 
   implicit def asJfxKeyCodeSeq(keyCodes: Seq[KeyCode]): Seq[jfxin.KeyCode] =
-    keyCodes.map[jfxin.KeyCode, Seq[jfxin.KeyCode]] { keyCode => keyCode }
+    keyCodes.map { keyCode => keyCode }
 
   implicit def asJfxMouseButtonSeq(mouseButtons: Seq[MouseButton]): Seq[jfxin.MouseButton] =
-    mouseButtons.map[jfxin.MouseButton, Seq[jfxin.MouseButton]] { mouseButton => mouseButton }
-
-}
-
-object GuavaConversions extends GuavaConversions
-
-trait GuavaConversions {
-
-  implicit def asPredicate[T](f: T => Boolean) =
-    new com.google.common.base.Predicate[T] {
-      override def apply(v: T): Boolean =
-        f(v)
-    }
-
-}
-
-object Java8Conversions extends Java8Conversions
-
-trait Java8Conversions {
-
-  implicit def asSupplier[T](f: () => T) =
-    new java.util.function.Supplier[T] {
-      override def get(): T =
-        f()
-    }
+    mouseButtons.map { mouseButton => mouseButton }
 
 }

@@ -15,35 +15,26 @@
  */
 package io.scalatestfx.api
 
+import javafx.geometry._
+import javafx.scene.{Node, Scene}
+import javafx.scene.image.Image
+import javafx.scene.input.{KeyCode, KeyCodeCombination, MouseButton}
+import javafx.stage.Window
+import org.hamcrest.Matcher
+import org.testfx.api.{FxRobot, FxRobotInterface}
+import org.testfx.robot.Motion
+import org.testfx.service.query.{BoundsQuery, NodeQuery, PointQuery}
+import org.testfx.service.support.Capture
+
 import java.net.URL
 import java.nio.file.Path
 import java.util.regex.Pattern
-import javafx.geometry.Bounds
-import javafx.geometry.HorizontalDirection
-import javafx.geometry.Point2D
-import javafx.geometry.Pos
-import javafx.geometry.Rectangle2D
-import javafx.geometry.VerticalDirection
-import javafx.scene.Node
-import javafx.scene.Scene
-import javafx.scene.image.Image
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyCodeCombination
-import javafx.scene.input.MouseButton
-import javafx.stage.Window
-import org.hamcrest.Matcher
-import org.testfx.api.FxRobot
-import org.testfx.api.FxRobotInterface
-import org.testfx.service.query.BoundsQuery
-import org.testfx.service.query.NodeQuery
-import org.testfx.service.query.PointQuery
-import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import io.scalatestfx.api.GuavaConversions._
-import org.testfx.service.support.Capture
-import org.testfx.robot.Motion
+import scala.jdk.CollectionConverters._
+import scala.compat.java8.FunctionConverters._
 
-/** Mixin trait that defines the DSL of TestFX for being used in ScalaTest
+/**
+ * Mixin trait that defines the DSL of TestFX for being used in ScalaTest
  *  specficiations.
  *
  *  It uses `FxRobot`, the default implementation of the `FxRobotInterface`
@@ -68,9 +59,8 @@ trait SfxRobotDsl {
   //---------------------------------------------------------------------------------------------
   //=============================================================================================
 
-  def closeCurrentWindow(): SfxRobotDsl = {
+  def closeCurrentWindow(): SfxRobotDsl =
     push(KeyCode.ALT, KeyCode.F4).sleep(100.millis)
-  }
 
   def sleep(duration: FiniteDuration): SfxRobotDsl = {
     delegate.sleep(duration.length, duration.unit)
@@ -95,8 +85,8 @@ trait SfxRobotDsl {
     this
   }
 
-  def targetWindow(predicate: (Window) => Boolean): SfxRobotDsl = {
-    delegate.targetWindow(predicate)
+  def targetWindow(predicate: Window => Boolean): SfxRobotDsl = {
+    delegate.targetWindow(asJavaPredicate(predicate))
     this
   }
 
@@ -130,13 +120,13 @@ trait SfxRobotDsl {
   //---------------------------------------------------------------------------------------------
 
   def listWindows: Seq[Window] =
-    delegate.listWindows.asScala
+    delegate.listWindows.asScala.toList
 
   def listTargetWindows: Seq[Window] =
-    delegate.listTargetWindows.asScala
+    delegate.listTargetWindows.asScala.toList
 
-  def window(predicate: (Window) => Boolean): Window =
-    delegate.window(predicate)
+  def window(predicate: Window => Boolean): Window =
+    delegate.window(asJavaPredicate(predicate))
 
   def window(windowIndex: Int): Window =
     delegate.window(windowIndex)
@@ -173,7 +163,7 @@ trait SfxRobotDsl {
     delegate.lookup(matcher)
 
   def lookup[T <: Node](predicate: T => Boolean): NodeQuery =
-    delegate.lookup(predicate)
+    delegate.lookup(asJavaPredicate(predicate))
 
   def rootNode(window: Window): Node =
     delegate.rootNode(window)
@@ -213,7 +203,7 @@ trait SfxRobotDsl {
     delegate.bounds(matcher)
 
   def bounds[T <: Node](predicate: T => Boolean): BoundsQuery =
-    delegate.bounds(predicate)
+    delegate.bounds(asJavaPredicate(predicate))
 
   //---------------------------------------------------------------------------------------------
   // METHODS FOR POINT POSITION
@@ -253,7 +243,7 @@ trait SfxRobotDsl {
     delegate.point(matcher)
 
   def point[T <: Node](predicate: T => Boolean): PointQuery =
-    delegate.point(predicate)
+    delegate.point(asJavaPredicate(predicate))
 
   //---------------------------------------------------------------------------------------------
   // METHODS FOR POINT OFFSET
@@ -281,7 +271,7 @@ trait SfxRobotDsl {
     delegate.offset(matcher, offsetX, offsetY)
 
   def offset[T <: Node](predicate: T => Boolean, offsetX: Double, offsetY: Double): PointQuery =
-    delegate.offset(predicate, offsetX, offsetY)
+    delegate.offset(asJavaPredicate(predicate), offsetX, offsetY)
 
   //---------------------------------------------------------------------------------------------
   // METHODS FOR SCREEN CAPTURING
@@ -435,12 +425,12 @@ trait SfxRobotDsl {
   }
 
   def clickOn[T <: Node](predicate: T => Boolean, buttons: MouseButton*): SfxRobotDsl = {
-    delegate.clickOn(predicate, buttons: _*)
+    delegate.clickOn(asJavaPredicate(predicate), buttons: _*)
     this
   }
 
   def clickOn[T <: Node](predicate: T => Boolean, motion: Motion, buttons: MouseButton*): SfxRobotDsl = {
-    delegate.clickOn(predicate, motion, buttons: _*)
+    delegate.clickOn(asJavaPredicate(predicate), motion, buttons: _*)
     this
   }
 
@@ -525,12 +515,12 @@ trait SfxRobotDsl {
   }
 
   def doubleClickOn[T <: Node](predicate: T => Boolean, buttons: MouseButton*): SfxRobotDsl = {
-    delegate.doubleClickOn(predicate, buttons: _*)
+    delegate.doubleClickOn(asJavaPredicate(predicate), buttons: _*)
     this
   }
 
   def doubleClickOn[T <: Node](predicate: T => Boolean, motion: Motion, buttons: MouseButton*): SfxRobotDsl = {
-    delegate.doubleClickOn(predicate, motion, buttons: _*)
+    delegate.doubleClickOn(asJavaPredicate(predicate), motion, buttons: _*)
     this
   }
 
@@ -630,12 +620,12 @@ trait SfxRobotDsl {
   }
 
   def rightClickOn[T <: Node](predicate: T => Boolean): SfxRobotDsl = {
-    delegate.rightClickOn(predicate)
+    delegate.rightClickOn(asJavaPredicate(predicate))
     this
   }
 
   def rightClickOn[T <: Node](predicate: T => Boolean, motion: Motion): SfxRobotDsl = {
-    delegate.rightClickOn(predicate, motion)
+    delegate.rightClickOn(asJavaPredicate(predicate), motion)
     this
   }
 
@@ -694,7 +684,7 @@ trait SfxRobotDsl {
   }
 
   def drag[T <: Node](predicate: T => Boolean, buttons: MouseButton*): SfxRobotDsl = {
-    delegate.drag(predicate, buttons: _*)
+    delegate.drag(asJavaPredicate(predicate), buttons: _*)
     this
   }
 
@@ -754,7 +744,7 @@ trait SfxRobotDsl {
   }
 
   def dropTo[T <: Node](predicate: T => Boolean): SfxRobotDsl = {
-    delegate.dropTo(predicate)
+    delegate.dropTo(asJavaPredicate(predicate))
     this
   }
 
@@ -911,12 +901,12 @@ trait SfxRobotDsl {
   }
 
   def moveTo[T <: Node](predicate: T => Boolean): SfxRobotDsl = {
-    delegate.moveTo(predicate)
+    delegate.moveTo(asJavaPredicate(predicate))
     this
   }
 
   def moveTo[T <: Node](predicate: T => Boolean, motion: Motion): SfxRobotDsl = {
-    delegate.moveTo(predicate, motion)
+    delegate.moveTo(asJavaPredicate(predicate), motion)
     this
   }
 
@@ -934,18 +924,16 @@ trait SfxRobotDsl {
     this
   }
 
-  def scroll(direction: VerticalDirection): SfxRobotDsl = {
+  def scroll(direction: VerticalDirection): SfxRobotDsl =
     scroll(direction)
-  }
 
   def scroll(amount: Int, direction: HorizontalDirection): SfxRobotDsl = {
     delegate.scroll(amount, direction)
     this
   }
 
-  def scroll(direction: HorizontalDirection): SfxRobotDsl = {
+  def scroll(direction: HorizontalDirection): SfxRobotDsl =
     scroll(direction)
-  }
 
   //---------------------------------------------------------------------------------------------
   // METHODS FOR TYPING

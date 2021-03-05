@@ -15,7 +15,7 @@
  */
 package io.scalatestfx.testing
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-abstract class AcceptanceSpec extends FlatSpec with Matchers
+abstract class AcceptanceSpec extends AnyFlatSpec with Matchers

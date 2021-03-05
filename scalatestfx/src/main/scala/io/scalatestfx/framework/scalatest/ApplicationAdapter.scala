@@ -18,19 +18,13 @@ package io.scalatestfx.framework.scalatest
 import javafx.stage.Stage
 
 class ApplicationAdapter(
-    val applicationFixture: ApplicationFixture
-    ) extends javafx.application.Application {
+  val applicationFixture: ApplicationFixture
+) extends javafx.application.Application {
 
-  override def init() {
-    applicationFixture.init()
-  }
+  override def init(): Unit = applicationFixture.init()
 
-  override def start(stage: Stage) {
-    applicationFixture.start(stage)
-  }
+  override def start(stage: Stage): Unit = applicationFixture.start(stage)
 
-  override def stop() {
-    applicationFixture.stop()
-  }
+  override def stop(): Unit = applicationFixture.stop()
 
 }

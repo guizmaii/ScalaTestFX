@@ -19,20 +19,18 @@ import javafx.{stage => jfxst}
 import org.testfx.api.FxToolkit
 import scalafx.application.JFXApp
 
-class JFXAppAdapter(
-    val jfxAppFixture: JFXAppFixture
-    ) extends javafx.application.Application {
+class JFXAppAdapter(val jfxAppFixture: JFXAppFixture) extends javafx.application.Application {
 
-  override def init() {
-    jfxAppFixture.init()
-  }
+  import scalafx.stage.StageIncludes._
 
-  override def start(stage: jfxst.Stage) {
+  override def init(): Unit =  jfxAppFixture.init()
+
+  override def start(stage: jfxst.Stage): Unit = {
     JFXApp.Stage = stage
     jfxAppFixture.start(new JFXApp.PrimaryStage)
   }
 
-  override def stop() {
+  override def stop(): Unit = {
     FxToolkit.hideStage()
     jfxAppFixture.stop()
   }

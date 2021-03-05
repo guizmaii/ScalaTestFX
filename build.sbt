@@ -1,137 +1,65 @@
-/*
- * Copyright (c) 2016, Innoave.com
- * All rights reserved.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL INNOAVE.COM OR ITS CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-import sbtrelease._
-
-//
-// Environment variables used by the build:
-// BUILT_BY      - Name to be added to Jar metadata field "Built-By" (defaults to System.getProperty("user.name")
-//
-
 name := "scalatestfx-build"
 
-//
-// Project Modules
-//
-
-lazy val scalatestfx = Project(
-  id = "scalatestfx",
-  base = file("scalatestfx"),
-  settings = commonSettings ++ ghpages.settings ++ Seq(
-    description := "The ScalaTestFX Framework",
-    publishArtifact := true,
-    libraryDependencies ++= Seq(
-      scalatest,
-      testfxCore,
-      scalafx
+lazy val scalatestfx =
+  Project(id = "scalatestfx", base = file("scalatestfx"))
+    .settings(commonSettings: _*)
+    .settings(
+      description := "The ScalaTestFX Framework",
+      publishArtifact := true,
+      libraryDependencies ++= Seq(
+        scalatest,
+        testfxCore,
+        scalafx,
+        scalaCompat
+      ) ++ javaFx
     )
-  )
-).enablePlugins(
-  SiteScaladocPlugin
-)
 
-lazy val scalatestfxDemos = Project(
-  id = "scalatestfx-demos",
-  base = file("scalatestfx-demos"),
-  settings = commonSettings ++ Seq(
-    description := "The ScalaTestFX Demonstrations",
-    publishArtifact := false,
-    javaOptions ++= Seq(
-      "-Xmx512M",
-      "-Djavafx.verbose"
-    ),
-    libraryDependencies ++= Seq(
-      scalafx
+lazy val scalatestfxDemos =
+  Project(id = "scalatestfx-demos", base = file("scalatestfx-demos"))
+    .settings(commonSettings: _*)
+    .settings(
+      description := "The ScalaTestFX Demonstrations",
+      publishArtifact := false,
+      javaOptions ++= Seq(
+        "-Xmx512M",
+        "-Djavafx.verbose"
+      ),
+      libraryDependencies ++= Seq(scalafx) ++ javaFx
     )
+  .dependsOn (
+    scalatestfx % "compile;test->test"
   )
-) dependsOn (
-  scalatestfx % "compile;test->test"
-)
 
-//
-// Dependencies
-//
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.1"
-lazy val testfxCore = "org.testfx" % "testfx-core" % "4.0.6-alpha"
-lazy val scalafx = "org.scalafx" %% "scalafx" % "8.0.102-R11"
-//lazy val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.5" % Provided
+lazy val testfxCore = "org.testfx" % "testfx-core" % "4.0.16-alpha"  % Provided
+lazy val scalafx = "org.scalafx" %% "scalafx" % "15.0.1-R21" % Provided
+lazy val scalaCompat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
 
-//
-// Plugins
-//
-enablePlugins(
-  GitBranchPrompt
-//  JekyllPlugin
-)
+// Add OS specific JavaFX dependencies
+val javafxModules = Seq("base", "controls", "fxml", "graphics", "media", "swing", "web")
+val osName = System.getProperty("os.name") match {
+  case n if n.startsWith("Linux") => "linux"
+  case n if n.startsWith("Mac") => "mac"
+  case n if n.startsWith("Windows") => "win"
+  case _ => throw new Exception("Unknown platform!")
+}
+lazy val javaFx = javafxModules.map(m => "org.openjfx" % s"javafx-$m" % "15.0.1"  % Provided classifier osName)
 
-commonSettings
+
 publishArtifact := false
 
 //
 // Common Settings
 //
-lazy val commonSettings = projectSettings ++ buildSettings ++ publishSettings
-
-//
-// Project Settings
-//
-
-lazy val projectSettings = Seq(
-  organization := "io.scalatestfx",
-  homepage := Some(url("https://github.com/haraldmaida/ScalaTestFX")),
-  startYear := Some(2016),
-  licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
-  scmInfo := Some(ScmInfo(
-    url("https://github.com/haraldmaida/ScalaTestFX"),
-      "scm:git:git@github.com:haraldmaida/ScalaTestFX.git"
-  )),
-  git.remoteRepo := "git@github.com:haraldmaida/ScalaTestFX.git"
-)
+lazy val commonSettings = buildSettings
 
 //
 // Build Settings
 //
 lazy val buildSettings = Seq(
-  crossScalaVersions := Seq("2.12.1", "2.11.10"),
-  scalaVersion := crossScalaVersions.value.head,
-  scalacOptions ++= Seq(
-    "-target:jvm-1.8",
-    "-encoding", "utf8",
-    "-unchecked",
-    "-deprecation",
-//    "-optimise",
-    "-feature",
-    "-language:_",
-    "-Xfatal-warnings",
-    "-Xlint:_",
-//    "-Yinline-warnings",      // seems to be not supported in 2.12
-    "-Ypartial-unification",
-    "-Yno-adapted-args",
-    "-Ywarn-dead-code",      // N.B. doesn't work well with the ??? hole
-    "-Ywarn-numeric-widen",
-    "-Ywarn-unused-import",    // 2.11+ only
-//    "-Ywarn-value-discard",
-    "-Ywarn-unused"
-  ),
-  javacOptions ++= Seq(
-    "-target", "1.8",
-    "-source", "1.8",
-    "-xlint:deprecation"
-  ),
-  javaVersionPrefix in javaVersionCheck := Some("1.8"),
-  sourcesInBase := false,
+  crossScalaVersions := Seq("2.12.13", "2.13.5"),
+  scalaVersion := "2.13.5",
+  scalacOptions ++= List("-release", "11"),
   parallelExecution := false,
   fork := true,
   resolvers ++= Seq(
@@ -155,39 +83,3 @@ lazy val manifestSetting = packageOptions += {
     "Implementation-Vendor" -> organization.value
   )
 }
-
-//
-// Release Process
-//
-releaseCrossBuild := true
-//releaseProcess := ReleaseProcess.steps
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
-//
-// Publishing
-//
-lazy val bintraySettings = Seq(
-  publishMavenStyle := true,
-  bintrayReleaseOnPublish := false,
-  bintrayOrganization in bintray := None
-)
-
-lazy val publishSettings = bintraySettings ++ Seq(
-  publishArtifact in Test := false,
-  // Metadata needed by Maven Central
-  // See also http://maven.apache.org/pom.html#Developers
-  pomExtra := (
-    <developers>
-      <developer>
-        <id>haraldmaida</id>
-        <name>Harald Maida</name>
-        <url>https://github.com/haraldmaida</url>
-      </developer>
-    </developers>
-    )
-)
-
-//
-// Project website
-//
-//sourceDirectory in Jekyll := baseDirectory.value / "website"

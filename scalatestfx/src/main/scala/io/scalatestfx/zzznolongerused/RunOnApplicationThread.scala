@@ -28,7 +28,7 @@ trait RunOnApplicationThread extends TestSuiteMixin {
     var testException: Exception = null
     var outcome: Outcome = null
     Platform.runLater(new Runnable() {
-      override def run() {
+      override def run(): Unit = {
         try {
           outcome = superWith(test)
         } catch {

@@ -20,7 +20,7 @@ import io.scalatestfx.api.SfxRobot
 import io.scalatestfx.framework.scalatest.JFXAppFixture
 import io.scalatestfx.testing.AcceptanceSpec
 import org.testfx.api.FxAssert.verifyThat
-import org.testfx.matcher.base.NodeMatchers.hasText
+import org.testfx.util.NodeQueryUtils.hasText
 import scalafx.Includes._
 import scalafx.event.ActionEvent
 import scalafx.scene.Scene
@@ -33,7 +33,7 @@ class JFXAppStartSpec extends AcceptanceSpec
     with JFXAppFixture
 {
 
-  override def start(stage: Stage) {
+  override def start(stage: Stage): Unit = {
     stage.title = "Hallo World!"
     stage.width = 200
     stage.height = 200
@@ -49,7 +49,7 @@ class JFXAppStartSpec extends AcceptanceSpec
         )
       }
     }
-    stage.show
+    stage.show()
   }
 
   "JFXappFixture mixed in in spec" should "start an simple JFXApp" in {

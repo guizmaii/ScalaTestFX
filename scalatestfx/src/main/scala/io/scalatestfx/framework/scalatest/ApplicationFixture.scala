@@ -16,33 +16,28 @@
 package io.scalatestfx.framework.scalatest
 
 import javafx.stage.Stage
-import org.scalatest.Outcome
-import org.scalatest.TestSuite
-import org.scalatest.TestSuiteMixin
+import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 import org.testfx.api.FxToolkit
-import io.scalatestfx.api.Java8Conversions._
+import scala.compat.java8.FunctionConverters._
 
 trait ApplicationFixture extends TestSuiteMixin { self: TestSuite =>
 
   def start(stage: Stage): Unit
 
-  def init() {
-    FxToolkit.registerStage(asSupplier(() => {
-      new Stage()
-    }))
+  def init(): Unit = {
+    FxToolkit.registerStage(asJavaSupplier(() => new Stage()))
+    ()
   }
 
-  def stop() {
-    FxToolkit.hideStage()
-  }
+  def stop(): Unit = FxToolkit.hideStage()
 
   abstract override def withFixture(test: NoArgTest): Outcome = {
-    val superWithFixture = super.withFixture _   // required to access to super withFixture method from within runnable for a trait
+    val superWithFixture = super.withFixture _ // required to access to super withFixture method from within runnable for a trait
     //setup before all tests
     FxToolkit.registerPrimaryStage()
-    FxToolkit.setupApplication(() => {
+    FxToolkit.setupApplication { () =>
       new ApplicationAdapter(ApplicationFixture.this)
-    })
+    }
     val outcome = superWithFixture(test)
     //cleanup after all tests
     FxToolkit.cleanupApplication(new ApplicationAdapter(ApplicationFixture.this))

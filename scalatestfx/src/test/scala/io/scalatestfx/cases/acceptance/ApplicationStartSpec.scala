@@ -15,28 +15,29 @@
  */
 package io.scalatestfx.cases.acceptance
 
-import scala.concurrent.duration._
 import io.scalatestfx.api.SfxRobot
 import io.scalatestfx.framework.scalatest.ApplicationFixture
 import io.scalatestfx.testing.AcceptanceSpec
-import org.testfx.api.FxAssert.verifyThat
-import org.testfx.matcher.base.NodeMatchers.hasText
-import javafx.stage.Stage
 import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.layout.StackPane
+import javafx.stage.Stage
+import org.testfx.api.FxAssert.verifyThat
+import org.testfx.util.NodeQueryUtils.hasText
 import scalafx.Includes._
 import scalafx.event.ActionEvent
+
+import scala.concurrent.duration._
 
 class ApplicationStartSpec extends AcceptanceSpec
     with SfxRobot
     with ApplicationFixture
 {
 
-  override def start(stage: Stage) {
+  override def start(stage: Stage): Unit = {
     stage.setTitle("Hallo World!")
     val button = new Button("click me!")
-    button.setOnAction((_: ActionEvent) -> button.setText("clicked!"))
+    button.setOnAction((_: ActionEvent) => { val _ = button.setText("clicked!") })
     stage.setScene(new Scene(new StackPane(button), 100, 100))
     stage.show()
   }

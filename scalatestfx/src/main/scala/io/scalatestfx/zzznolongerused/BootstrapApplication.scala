@@ -22,10 +22,10 @@ import javafx.stage.Stage
 object BootstrapApplication {
   private val launchLatch = new CountDownLatch(1)
   var launched = false
-  def launch() {
+  def launch(): Unit = {
     if (!launched) {
       new Thread(new Runnable() {
-        def run() {
+        def run(): Unit = {
           Application.launch(classOf[BootstrapApplication])
         }
       }).start()
@@ -36,7 +36,7 @@ object BootstrapApplication {
 }
 
 class BootstrapApplication extends Application {
-  override def start(stage: Stage) {
+  override def start(stage: Stage): Unit = {
     BootstrapApplication.launchLatch.countDown()
   }
 }
