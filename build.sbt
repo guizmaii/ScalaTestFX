@@ -57,7 +57,6 @@ lazy val commonSettings = buildSettings
 // Build Settings
 //
 lazy val buildSettings = Seq(
-  crossScalaVersions := Seq("2.12.13", "2.13.5"),
   scalaVersion := "2.13.5",
   scalacOptions ++= List("-release", "11"),
   parallelExecution := false,
